@@ -54,7 +54,9 @@ B+树基于B树和叶子结点顺序访问指针实现，具有B树的平衡性�
 
 对于聚簇索引，行数据存储在主键B+树的叶子节点，辅助B+树索引数据和对应的主键。如下图所示，使用Name值搜索行数据，需要两个步骤：先在辅助B+树检索到相应地主键数据，再在主键B+树查找主键对应的叶子节点。
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/20141027091453469704.png)
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/20141027091503903957.png)
 
 ### 4.MyISM索引实现
 
