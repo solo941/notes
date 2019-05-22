@@ -160,4 +160,41 @@ show index from t;
 analyze table t;
 ```
 
-此外，在执行**联合索引查询**时，系统也会有可能选错索引。
+此外，在执行**联合索引查询**时，系统也会有可能选错索引。开发人员可以通过分析 Explain 结果来优化查询语句。
+
+## 3.优化数据访问
+
+第一种方法：减少请求的数据量
+
+- 只返回必要的列：少使用select * 语句。
+- 只返回必要的行，使用索引，使用LIMIT。
+- 缓存重复查询的数据，避免在数据库中查询。
+
+第二种方法：重构查询方式
+
+- 切分大查询
+
+```sql
+DELETE FROM messages WHERE create < DATE_SUB(NOW(), INTERVAL 3 MONTH);
+rows_affected = 0
+do {
+    rows_affected = do_query(
+    "DELETE FROM messages WHERE create  < DATE_SUB(NOW(), INTERVAL 3 MONTH) LIMIT 10000")
+} while rows_affected > 0
+```
+
+- 分解大连接查询：将一个大连接查询分解成对每一个表进行一次单表查询，然后在应用程序中进行关联。这样可以让缓存更高效，如果是大连接查询，其中一张表发生改变就会缓存失效；同时，单表查询的缓存结果可以被其他查询使用到。减少锁竞争，更容易对数据库进行拆分。
+
+```sql
+SELECT * FROM tab
+JOIN tag_post ON tag_post.tag_id=tag.id
+JOIN post ON tag_post.post_id=post.id
+WHERE tag.tag='mysql';
+```
+
+```sql
+SELECT * FROM tag WHERE tag='mysql';
+SELECT * FROM tag_post WHERE tag_id=1234;
+SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);
+```
+
