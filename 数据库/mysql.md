@@ -214,9 +214,13 @@ Sharding引起的问题：
 - 连接：将原来的连接分解成多个单表连接。
 - ID唯一性：可使用全局唯一ID，或为每个分片指定ID范围，或者使用分布式ID生成器（Snowflake算法）。
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/63c2909f-0c5f-496f-9fe5-ee9176b31aba.jpg)
+
 ## 2.垂直切分
 
 垂直切分按照列的关系密集程度进行切分，可以将经常使用的列和不经常使用的列切分到不同表中。
+
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/e130e5b8-b19a-4f1e-b860-223040525cf6.jpg)
 
 # 四、存储引擎
 
@@ -254,6 +258,8 @@ MySQL默认的事务性存储引擎，默认级别是可重复读。在可重复
 
 主服务器将数据更新写入Binary log中，由从服务器的I/O进程读取，并写入从服务器的Relay log中，最后由从服务器SQL进程读取Relay log,解析主服务器的数据更改并在从服务器中Replay。
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/master-slave.png)
+
 ## 读写分离
 
 主服务器处理写操作和实时性高的读操作，从服务器处理读操作。
@@ -265,3 +271,5 @@ MySQL默认的事务性存储引擎，默认级别是可重复读。在可重复
 - 增加冗余，提高可用性
 
 读写分离常用代理方式来实现，代理服务器接收应用层传来的读写请求，然后决定转发到哪个服务器。
+
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/master-slave-proxy.png)
