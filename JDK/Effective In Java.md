@@ -18,3 +18,33 @@ if(deviceId != null){
 Optional.ofNullable(deviceId).ifPresent(DummyOperator::doIt)
 ```
 
+## 映射
+
+```java
+if(deviceId != null){
+	String group = device.getGroup();
+    DummyOperator.doIt(group);
+}
+```
+
+简化后等价：
+
+```java
+Optional.ofNullable(device).map(d -> d.getGroup()).ifPresent(g -> DummyOperator.doIt(g));
+```
+
+## 简化if/else
+
+```java
+if(deviceId != null){
+	String group = device.getGroup();
+    return group;
+}else return "unknown";
+```
+
+简化后等价：
+
+```java
+return Optional.ofNullable(device).map(Device::getGroup).orElse("unknown");
+```
+
