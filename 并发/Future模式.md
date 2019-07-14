@@ -18,3 +18,103 @@ public interface Future<V> {
 }
 ```
 
+## FutureTask
+
+```java
+public class ResponseFuture implements Future<String> {
+    private final ResponseCallback callback;
+    private String responsed;
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    public ResponseFuture(ResponseCallback callback) {
+        this.callback = callback;
+    }
+
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return false;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
+    public boolean isDone() {
+        return null != this.responsed;
+
+    }
+
+    @Override
+    public String get() throws InterruptedException, ExecutionException {
+
+            try {
+                this.lock.lock();
+                System.out.println("还没准备好");
+                condition.await();
+                System.out.println("收到回应:" + this.responsed);
+            } finally {
+                this.lock.unlock();
+            }
+        return this.responsed;
+
+    }
+    public void done(String responsed) throws Exception{
+        try {
+            this.lock.lock();
+            if(null != this.callback) this.responsed = this.callback.call(responsed);
+            this.condition.signal();
+            System.out.println("已发送回应："+this.responsed);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+
+    @Override
+    public String get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return null;
+    }
+
+
+}
+```
+
+```java
+public class ResponseCallback {
+    public String call(String o) {
+        System.out.println("ResponseCallback：处理完成，返回："+o);
+        return o;
+    }
+}
+```
+
+
+
+```java
+public void test(){
+        final ResponseFuture responseFuture = new ResponseFuture(new ResponseCallback());
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.execute(() ->{
+            try {
+                responseFuture.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+        executorService.execute(() ->{
+            try {
+                responseFuture.done("ok");// 处理完成
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        executorService.shutdown();
+    }
+```
+
