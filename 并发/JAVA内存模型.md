@@ -57,6 +57,8 @@ int c = a + b ; //3
 
 使用volatile关键字会禁止指令重排。具体如下图所示：
 
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/20160330125938817.png)
+
 以单例模式的线程安全懒汉式为例：
 
 ```java
@@ -90,3 +92,12 @@ public class Singleton {
 
 总结一下，多CPU多级缓存导致的可见性问题、CPU时间片机制导致的原子性问题、以及处理器优化和指令重排导致的有序性问题等。
 
+## 参考资料
+
+JDK1.8
+
+[Java 多线程三大核心](https://github.com/crossoverJie/JCSprout/blob/master/MD/Threadcore.md)
+
+[求你了，再问你Java内存模型的时候别再给我讲堆栈方法区了](https://mp.weixin.qq.com/s/x0cuhZdUN3XOppwRv-edPA)
+
+[**JMM——volatile与内存屏障**](https://blog.csdn.net/hqq2023623/article/details/51013468)
