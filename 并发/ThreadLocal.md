@@ -12,7 +12,7 @@ ThreadLocal归纳下来就2类用途：
 
 下图为`ThreadLocal`的内部结构图
 
-
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/ThreadLocal.png)
 
 ## 源码解析
 
@@ -280,3 +280,13 @@ public static Session getCurrentSession(){
 每个线程访问数据库都应当是一个独立的Session会话，如果多个线程共享同一个Session会话，有可能其他线程关闭连接了，当前线程再执行提交时就会出现会话已关闭的异常，导致系统异常。
 
 要特别注意的一点，`ThreadLocal`对象使用static修饰，有一个好处就是，由于`ThreadLocal`有强引用在，那么在`ThreadLocalMap`里对应的Entry的键会永远存在，那么执行remove的时候就可以正确进行定位到并且删除。
+
+## 参考资料
+
+[**ThreadLocal-面试必问深度解析**](https://www.jianshu.com/p/98b68c97df9b)
+
+[**深入理解 ThreadLocal (这些细节不应忽略)**](https://www.jianshu.com/p/56f64e3c1b6c)
+
+JDK8
+
+[手撕面试题ThreadLocal！！！](https://mp.weixin.qq.com/s/c0eNbNXJAR7CMRBfotf4kw)
