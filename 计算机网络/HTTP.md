@@ -133,7 +133,11 @@ HTTP/2.0 的首要目标是通过完全的请求,响应多路复用,头部的压
 
 ###  二进制分帧
 
+![pic](https://github.com/solo941/notes/blob/master/计算机网络/pics/86e6a91d-a285-447a-9345-c5484b8d0c47.png)
+
 性能提升的核心在于二进制帧层.它指HTTP消息在客户端和服务端如何封装和传输.HTTP/2.0 将报文分成 HEADERS 帧和 DATA 帧，它们都是二进制格式的。一旦建立了HTTP / 2连接，客户端和服务器就通过交换帧来进行通信，这些帧用作协议内最小的通信单元。所有帧共享一个共同的9字节头，其中包含帧的长度，类型，标志位字段和31位流标识符。
+
+![pic](https://github.com/solo941/notes/blob/master/计算机网络/pics/5281821-d8687e8eed1e6823.png)
 
 基于二进制帧机制的消息传输机制特点：
 
@@ -146,13 +150,19 @@ HTTP/2.0 的首要目标是通过完全的请求,响应多路复用,头部的压
 
 ### 请求和响应的多路复用
 
+![pic](https://github.com/solo941/notes/blob/master/计算机网络/pics/af198da1-2480-4043-b07f-a3b91a88b815.png)
+
 在HTTP/1.x中,用户想要多个并行的请求来提高性能,但是这样必须得使用多个TCP连接能实现并发和缩短延迟；在HTTP/2中,新的二进制帧层,解除了这个限制.使得所有的请求和响应多路复用.通过允许客户端和服务端把HTTP消息分解成独立的帧,交错传输,然后在另一端组装.
 
 如图所示，在一次连接中的多个流.客户端传输数据帧到服务端(Stream5).服务端传输交错的帧序列(Stream1,Stream3)到客户端.此时,同时存在并行的3个流.
 
+![pic](https://github.com/solo941/notes/blob/master/计算机网络/pics/5281821-ce9d374b7d0adf09.png)
+
 ### 首部压缩
 
 HTTP/1.1 的首部带有大量信息，而且每次都要重复发送，HTTP/2.0 要求客户端和服务器同时维护和更新一个包含之前见过的首部字段表，从而避免了HTTP/1.X中头部阻塞的问题。不仅如此，HTTP/2.0 也使用 Huffman 编码对首部字段进行压缩。
+
+![pic](https://github.com/solo941/notes/blob/master/计算机网络/pics/5281821-38055e8dde4b4436.png)
 
 ### 服务端推送
 
@@ -175,4 +185,12 @@ HTTP/2.0 在客户端请求一个资源时，会把相关的资源一起发送�
 - 流量控制是逐跳的,而不是端到端的.也就是说,一个中介可以使用它控制资源的使用,从而根据自己的标准和启发式实现资源分配机制.
 
   
+
+## 参考资料
+
+[http](https://github.com/CyC2018/CS-Notes/blob/master/notes/HTTP.md#4xx-%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%94%99%E8%AF%AF)
+
+[HTTP----HTTP2.0新特性](https://juejin.im/post/5a4dfb2ef265da43305ee2d0)
+
+[**HTTP/2 新特性总结**](https://www.jianshu.com/p/67c541a421f9)
 
