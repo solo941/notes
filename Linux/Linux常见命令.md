@@ -111,6 +111,153 @@ awk 变量：
 
 last -n 5 | awk '{print $1 "\t lines: " NR "\t columns: " NF}'
 
+AWK 将每条线视为由多个字段组成，每个字段由“间隔符”分隔。 默认情况下，这是一个或多个空格字符，字段分隔符由 awk 内部变量 FS 设置，因此如果您设置 FS= ": "则它将根据 ‘:’ 的位置划分一行。
+
+举个例子
+
+```unix
+ls -l
+总用量 140
+-rw-r--r-- 1 root root 55121 1月   3 17:03 combined_log_format.log
+-rw-r--r-- 1 root root 80644 1月   3 17:03 combined_log_format_w_resp_time.log
+-rw-r--r-- 1 root root    71 1月   3 17:55 sampler.log
+```
+
+AWK 支持（‘for’ 和 ‘while’）循环和分支（使用 'if '）。 所以，如果你想修剪一个文件并且只在每个第 3 行操作，你可以这样做：
+
+```
+ls -l | awk '{for (i=1;i<3;i++) {getline}; print NR,$0}'
+3 -rw-r--r-- 1 root root 80644 1月   3 17:03 combined_log_format_w_resp_time.log
+4 -rw-r--r-- 1 root root    71 1月   3 17:55 sampler.log
+```
+
+awk本质上就是一个for循环，它每次对输入文件的一行进行处理，然后转而执行下一行，直到整个文件的每一行都被执行完毕。整个过程是自动的，你无需做什么。但是，getline命令却可以让你去控制循环。getline得到的并不是当前行，而是当前行的下一行。以上面的例子来分析，awk首先读取到了第一行，就是1，然后执行两次getline，就得到了第三行，因为getline之后，awk会改变对应的NF，NR，FNR和$0等内部变量，所以此时的$0的值就不再是1，而是3了，然后将它打印出来。同理打印第四行。
+
+同样，我们可以利用getline只打印出奇数行。
+
+```
+seq 10 | awk '{getline tmp; print tmp; print $0}'
+```
+
+另外getline也可以从另外一个文件中读取内容。下面例子实现将两个文件的每一行都打印在一行上。
+
+```
+awk '{printf "%s ", $0; getline < "b.txt"; print $0}' a.txt
+```
+
+下面再给出几个例子
+
+以/为分隔符，匹配倒数第二行的s或者没有s后面是bin的整行
+
+```
+awk -F "/" '$(NF-1)~/(s|)bin/' /etc/passwd    
+```
+
+以一个或多个/为行的分割符，打印第二行的第二列，列的分隔符为默认的空格,并打印行号
+
+```
+awk 'BEGIN{RS="[/]+"} NR==2{print NR,$2}' test  
+```
+
+使用awk命令按域名统计 返回码大于等于400的百分比，假如优酷总共有4行，大于等于400的返回码有两行，那占比就为50%
+
+```
+ http://youku.com 200
+ http://youku.com 302
+ http://youku.com 403
+ http://youku.com 502
+ http://baidu.com 302
+ http://baidu.com 404
+```
+
+```
+awk '{
+        count[$1]++; 
+        if($2>400)above400[$1]++
+    }
+    END{
+        for(i in count){
+            print i, count[i], above400[i]/count[i]
+        }
+    }' < xxx.txt
+```
+
+END只在最后一行遍历完执行。
+
+tomcat并发数
+
+```
+netstat -an|grep 10050|awk '{count[$6]++} END{for (i in count) print(i,count[i])}'
+```
+
+## sed
+
+Sed是Strem Editor(流编辑器)缩写，是操作、过滤和转换文本内容的强大工具。常用功能有增删改查，过滤，取行。
+
+概括流程：Sed软件从文件或管道中读取一行，处理一行，输出一行；再读取一行，再处理一行，再输出一行
+
+a 追加文本到指定行后
+
+ i 插入文本到指定行前
+
+```
+sed '2a 106,dandan,CSO\n107,bingbing,CCO' person.txt
+```
+
+我们对sampler.log我文件进行操作
+
+```
+sed -e 's/input/output/' sampler.log 
+boot
+book
+booze
+machine
+boots
+bungie
+bark
+aardvark
+broken$tuff
+robots
+```
+
+如果你希望在搜索命令中使用的某个字符是特殊符号，例如 ‘/’，该怎么办？（例如在文件名中）或 ‘*’ 等？ 然后你必须像 grep（和awk）那样转义符号。
+
+```
+sed -e 's/\/bin/\/usr\/local\/bin/' my_script > new_script
+```
+
+每行以你的文件中的数字开头，并用括号括起该数字：
+
+```
+sed -e 's/[0-9]*/(&)/' 
+```
+
+**其它 SED 命令**
+
+```
+sed -e '/pattern/ command' sampler.log
+```
+
+s’= search＆replace，或 ‘p’= print，或 ‘d’=delete，或 ‘i’=insert，或 ‘a’=append
+
+删除文件的前10行以外的所有行
+
+```
+sed -e '11,$ d' sampler.log
+```
+
+想打印从 ‘boot’ 到 ‘machine’ 的所有行
+
+```
+sed -n -e '/boot$/,/mach/p' sampler.log
+boot
+book
+booze
+machine
+```
+
+
+
 ## 进程状态
 
 ![pic](https://github.com/solo941/notes/blob/master/Linux/pics/2bab4127-3e7d-48cc-914e-436be859fb05.png)
@@ -166,3 +313,8 @@ options 参数主要有 WNOHANG 和 WUNTRACED 两个选项，WNOHANG 可以使 w
 
 [工作中常用到的Linux命令](https://mp.weixin.qq.com/s/2jZ2jwjv0-yeqAw27FAcFQ)
 
+[**性能工具之linux三剑客awk、grep、sed详解**](https://blog.csdn.net/zuozewei/article/details/85709621)
+
+[**awk getline命令解析**](https://blog.csdn.net/xibeichengf/article/details/51367311)
+
+[awk  sed   grep 详解](https://www.cnblogs.com/dazhidacheng/p/8030481.html)
