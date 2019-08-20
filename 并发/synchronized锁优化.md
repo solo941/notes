@@ -117,7 +117,7 @@ HotSpot虚拟机中，对象在内存中存储分为三块区域：对象头、�
 
 对象头默认存储结构如下：
 
-
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/20190510095530.png)
 
 `_metadata`是一个共用体，其中`_klass`是普通指针，`_compressed_klass`是压缩类指针。在深入介绍之前，就要来到`oop-Klass`中的另外一个主角`klass`了。
 
@@ -166,7 +166,7 @@ instanceKclass内部结构：
 
 在JVM中，对象在内存中的基本存在形式就是oop。那么，对象所属的类，在JVM中也是一种对象，因此它们实际上也会被组织成一种oop，即klassOop。同样的，对于klassOop，也有对应的一个klass来描述，它就是klassKlass，也是klass的一个子类。在这种设计下，JVM对内存的分配和回收，都可以采用统一的方式来管理。oop-klass-klassKlass关系如图：
 
-
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190821025851.jpg)
 
 ### 实例演示对象模型
 
@@ -190,7 +190,21 @@ public static void main(String[] args) {
 
 HotSpot JVM中的OOP-Kclass模型如图：
 
+
+
 总结：**每一个Java类，在被JVM加载的时候，JVM会给这个类创建一个instanceKlass，保存在方法区，用来在JVM层表示该Java类。当我们在Java代码中，使用new创建一个对象的时候，JVM会创建一个instanceOopDesc对象，这个对象头中包含了两部分信息，方法头以及元数据。对象头中有一些运行时数据，其中就包括和多线程相关的锁的信息。元数据其实维护的是指针，指向的是对象所属的类的instanceKlass。**
 
 ##  Java虚拟机的锁优化技术
+
+## 参考资料
+
+[synchronized实现原理及锁优化](https://nicky-chen.github.io/2018/05/14/synchronized-principle/)
+
+[Synchronized的实现原理（一）](https://mp.weixin.qq.com/s/637zy26W_fdeopX5dG8OKQ)
+
+[深入理解多线程（二）—— Java的对象模型](https://mp.weixin.qq.com/s/mWWey3zngiqi-E40PR9U3A)
+
+[深入理解多线程（五）—— Java虚拟机的锁优化技术](https://mp.weixin.qq.com/s/VDdsKp0uzmh_7vpD9lpLaA)
+
+[Java对象头详解](https://www.jianshu.com/p/3d38cba67f8b)
 
