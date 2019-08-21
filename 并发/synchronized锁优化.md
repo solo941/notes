@@ -198,7 +198,7 @@ HotSpot JVM中的OOP-Kclass模型如图：
 
 要想把锁说清楚，一个重要的概念不得不提，那就是线程和线程的状态。对于线程来说，一共有五种状态，分别为：初始状态(New) 、就绪状态(Runnable) 、运行状态(Running) 、阻塞状态(Blocked) 和死亡状态(Dead) 。
 
-
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190822023954.jpg)
 
 ### 自旋锁
 
@@ -250,11 +250,15 @@ synchronized(this){
 
 ### 轻量级锁
 
-JDK 1.6 引入了偏向锁和轻量级锁，从而让锁拥有了四个状态：无锁状态（unlocked）、偏向锁状态（biasble）、轻量级锁状态（lightweight locked）和重量级锁状态（inflated）。
+JDK 1.6 引入了偏向锁和轻量级锁，从而让锁拥有了四个状态：无锁状态（unlocked）、偏向锁状态（biasble）、轻量级锁状态（lightweight locked）和重量级锁状态（inflated）。下面给出不同锁在对象头中的标识。
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/bb6a49be-00f2-4f27-a0ce-4ed764bc605c.png)
 
 轻量级锁是相对于传统的重量级锁而言，它使用 CAS 操作来避免重量级锁使用互斥量的开销。对于绝大部分的锁，在整个同步周期内都是不存在竞争的，因此也就不需要都使用互斥量进行同步，可以先采用 CAS 操作进行同步，如果 CAS 失败了再改用互斥量进行同步。
 
 当尝试获取一个锁对象时，如果锁对象标记为 0 01，说明锁对象的锁未锁定（unlocked）状态。此时虚拟机在当前线程的虚拟机栈中创建 Lock Record，然后使用 CAS 操作将对象的 Mark Word 更新为 Lock Record 指针。如果 CAS 操作成功了，那么线程就获取了该对象上的锁，并且对象的 Mark Word 的锁标记变为 00，表示该对象处于轻量级锁状态。
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/baaa681f-7c52-4198-a5ae-303b9386cf47.png)
 
 如果 CAS 操作失败了，虚拟机首先会检查对象的 Mark Word 是否指向当前线程的虚拟机栈，如果是的话说明当前线程已经拥有了这个锁对象，那就可以直接进入同步块继续执行，否则说明这个锁对象已经被其他线程线程抢占了。如果有两条以上的线程争用同一个锁，那轻量级锁就不再有效，要膨胀为重量级锁。
 
@@ -278,6 +282,8 @@ JDK 1.6 引入了偏向锁和轻量级锁，从而让锁拥有了四个状态：
 10. 继续执行线程1的代码;
 11. 锁升级为轻量级锁;   
 12. 线程2自旋来获取锁对象;
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/390c913b-5f31-444f-bbdb-2b88b688e7ce.jpg)
 
 ## 参考资料
 
