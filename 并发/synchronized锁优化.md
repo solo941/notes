@@ -95,57 +95,6 @@ public static synchronized void divide();
 
 同步方法和静态同步方法依靠的是方法修饰符上的ACC_SYNCHRONIZED实现。JVM根据该修饰符来实现方法的同步。当方法调用时，调用指令将会检查方法的 ACC_SYNCHRONIZED 访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
 
-## Moniter的实现原理
-
-### Java线程同步相关的Moniter
-
-在多线程访问共享资源的时候，经常会带来可见性和原子性的安全问题。为了解决这类线程安全的问题，Java提供了同步机制、互斥锁机制，这个机制保证了在同一时刻只有一个线程能访问共享资源。这个机制的保障来源于监视锁Monitor，每个对象都拥有自己的监视锁Monitor。
-
-### 监视器的实现
-
-首先介绍Java对象与monitor的关联：通过在Java对象头中的mark word中存储了指向monitor的指针。无锁态时，mark word存储的是hashCode、分代年龄；重量级锁时，mark word存储的是指向monitor的指针。monitor是对互斥量和信号量的封装。
-
-![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-ac10c2a5c942c0f4.png)
-
-在Java虚拟机(HotSpot)中，Monitor是基于C++实现的，由ObjectMonitor实现的，ObjectMonitor中有几个关键属性：
-
-```
-_owner：指向持有ObjectMonitor对象的线程
-
-_WaitSet：存放处于wait状态的线程队列
-
-_EntryList：存放处于等待锁block状态的线程队列
-
-_recursions：锁的重入次数
-
-_count：用来记录该线程获取锁的次数
-```
-
-当多个线程同时访问一段同步代码时，首先会进入`_EntryList`队列中，当某个线程获取到对象的monitor后进入`_Owner`区域并把monitor中的`_owner`变量设置为当前线程，同时monitor中的计数器`_count`加1。即获得对象锁。
-
-若持有monitor的线程调用`wait()`方法，将释放当前持有的monitor，`_owner`变量恢复为`null`，`_count`自减1，同时该线程进入`_WaitSet`集合中等待被唤醒。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。如下图所示：
-
-![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-0d3b09e6c73f8892.png)
-
-线程调用ObjectMonitor方法，获取Monitor的流程：
-
-![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014702.jpg)
-
-线程调用ObjectMonitor方法，释放Monitor的流程：
-
-![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014708.jpg)
-
-下面分析一下引入管程的原因：
-
-```
-管程 (英语：Monitors，也称为监视器) 是一种程序结构，结构内的多个子程序（对象或模块）形成的多个工作线程互斥访问共享资源。
-引入管程的原因
-信号量机制的缺点：进程自备同步操作，P(S)和V(S)操作大量分散在各个进程中，不易管理，易发生死锁。
-管程特点：管程封装了同步操作，对进程隐蔽了同步细节，简化了同步功能的调用界面。
-```
-
-
-
 ## Java的对象模型
 
 ### oop-klass model
@@ -244,6 +193,79 @@ HotSpot JVM中的OOP-Kclass模型如图：
 ![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190821031643.jpg)
 
 总结：**每一个Java类，在被JVM加载的时候，JVM会给这个类创建一个instanceKlass，保存在方法区，用来在JVM层表示该Java类。当我们在Java代码中，使用new创建一个对象的时候，JVM会创建一个instanceOopDesc对象，这个对象头中包含了两部分信息，方法头以及元数据。对象头中有一些运行时数据，其中就包括和多线程相关的锁的信息。元数据其实维护的是指针，指向的是对象所属的类的instanceKlass。**
+
+## Java的对象头
+
+每一个Java类，在被JVM加载的时候，JVM会给这个类创建一个`instanceKlass`，保存在方法区，用来在JVM层表示该Java类。当我们在Java代码中，使用new创建一个对象的时候，JVM会创建一个`instanceOopDesc`对象，这个对象中包含了对象头以及实例数据。
+
+```c++
+class oopDesc {
+  friend class VMStructs;
+ private:
+  volatile markOop  _mark;
+  union _metadata {
+    wideKlassOop    _klass;
+    narrowOop       _compressed_klass;
+  } _metadata;
+}
+```
+
+上面代码中的`_mark`和`_metadata`其实就是对象头的定义。`_mark`即mark word。对markword的设计方式上，非常像网络协议报文头：将mark word划分为多个比特位区间，并在不同的对象状态下赋予比特位不同的含义。下图描述了在32位虚拟机上，在对象不同状态时 mark word各个比特位区间的含义。
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823022026.jpg)
+
+从上图中可以看出，对象的状态一共有五种，分别是无锁态、轻量级锁、重量级锁、GC标记和偏向锁。在32位的虚拟机中有两个Bits是用来存储锁的标记为的，但是我们都知道，两个bits最多只能表示四种状态：00、01、10、11，那么第五种状态如何表示呢 ，就要额外依赖1Bit的空间，使用0和1来区分。
+
+## Moniter的实现原理
+
+### Java线程同步相关的Moniter
+
+在多线程访问共享资源的时候，经常会带来可见性和原子性的安全问题。为了解决这类线程安全的问题，Java提供了同步机制、互斥锁机制，这个机制保证了在同一时刻只有一个线程能访问共享资源。这个机制的保障来源于监视锁Monitor，每个对象都拥有自己的监视锁Monitor。
+
+### 监视器的实现
+
+首先介绍Java对象与monitor的关联：通过在Java对象头中的mark word中存储了指向monitor的指针。无锁态时，mark word存储的是hashCode、分代年龄；重量级锁时，mark word存储的是指向monitor的指针。monitor是对互斥量和信号量的封装。
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-ac10c2a5c942c0f4.png)
+
+在Java虚拟机(HotSpot)中，Monitor是基于C++实现的，由ObjectMonitor实现的，ObjectMonitor中有几个关键属性：
+
+```
+_owner：指向持有ObjectMonitor对象的线程
+
+_WaitSet：存放处于wait状态的线程队列
+
+_EntryList：存放处于等待锁block状态的线程队列
+
+_recursions：锁的重入次数
+
+_count：用来记录该线程获取锁的次数
+```
+
+当多个线程同时访问一段同步代码时，首先会进入`_EntryList`队列中，当某个线程获取到对象的monitor后进入`_Owner`区域并把monitor中的`_owner`变量设置为当前线程，同时monitor中的计数器`_count`加1。即获得对象锁。
+
+若持有monitor的线程调用`wait()`方法，将释放当前持有的monitor，`_owner`变量恢复为`null`，`_count`自减1，同时该线程进入`_WaitSet`集合中等待被唤醒。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。如下图所示：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-0d3b09e6c73f8892.png)
+
+线程调用ObjectMonitor方法，获取Monitor的流程：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014702.jpg)
+
+线程调用ObjectMonitor方法，释放Monitor的流程：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014708.jpg)
+
+下面分析一下引入管程的原因：
+
+```
+管程 (英语：Monitors，也称为监视器) 是一种程序结构，结构内的多个子程序（对象或模块）形成的多个工作线程互斥访问共享资源。
+引入管程的原因
+信号量机制的缺点：进程自备同步操作，P(S)和V(S)操作大量分散在各个进程中，不易管理，易发生死锁。
+管程特点：管程封装了同步操作，对进程隐蔽了同步细节，简化了同步功能的调用界面。
+```
+
+
 
 ##  Java虚拟机的锁优化技术
 
@@ -344,8 +366,13 @@ JDK 1.6 引入了偏向锁和轻量级锁，从而让锁拥有了四个状态：
 
 [深入理解多线程（二）—— Java的对象模型](https://mp.weixin.qq.com/s/mWWey3zngiqi-E40PR9U3A)
 
+[深入理解多线程（三）—— Java的对象头](https://mp.weixin.qq.com/s/3bfUtmhtRvXMGB04aPAIFA)
+
+[深入理解多线程（四）—— Moniter的实现原理](https://mp.weixin.qq.com/s/_yphyaUhjO0FJDm0pqO6ng)
+
 [深入理解多线程（五）—— Java虚拟机的锁优化技术](https://mp.weixin.qq.com/s/VDdsKp0uzmh_7vpD9lpLaA)
 
 [Java对象头详解](https://www.jianshu.com/p/3d38cba67f8b)
 
 [java 偏向锁怎么升级为轻量级锁](https://www.cnblogs.com/baxianhua/p/9391981.html)
+
