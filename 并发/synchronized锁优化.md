@@ -95,6 +95,57 @@ public static synchronized void divide();
 
 同步方法和静态同步方法依靠的是方法修饰符上的ACC_SYNCHRONIZED实现。JVM根据该修饰符来实现方法的同步。当方法调用时，调用指令将会检查方法的 ACC_SYNCHRONIZED 访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
 
+## Moniter的实现原理
+
+### Java线程同步相关的Moniter
+
+在多线程访问共享资源的时候，经常会带来可见性和原子性的安全问题。为了解决这类线程安全的问题，Java提供了同步机制、互斥锁机制，这个机制保证了在同一时刻只有一个线程能访问共享资源。这个机制的保障来源于监视锁Monitor，每个对象都拥有自己的监视锁Monitor。
+
+### 监视器的实现
+
+首先介绍Java对象与monitor的关联：通过在Java对象头中的mark word中存储了指向monitor的指针。无锁态时，mark word存储的是hashCode、分代年龄；重量级锁时，mark word存储的是指向monitor的指针。monitor是对互斥量和信号量的封装。
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-ac10c2a5c942c0f4.png)
+
+在Java虚拟机(HotSpot)中，Monitor是基于C++实现的，由ObjectMonitor实现的，ObjectMonitor中有几个关键属性：
+
+```
+_owner：指向持有ObjectMonitor对象的线程
+
+_WaitSet：存放处于wait状态的线程队列
+
+_EntryList：存放处于等待锁block状态的线程队列
+
+_recursions：锁的重入次数
+
+_count：用来记录该线程获取锁的次数
+```
+
+当多个线程同时访问一段同步代码时，首先会进入`_EntryList`队列中，当某个线程获取到对象的monitor后进入`_Owner`区域并把monitor中的`_owner`变量设置为当前线程，同时monitor中的计数器`_count`加1。即获得对象锁。
+
+若持有monitor的线程调用`wait()`方法，将释放当前持有的monitor，`_owner`变量恢复为`null`，`_count`自减1，同时该线程进入`_WaitSet`集合中等待被唤醒。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。如下图所示：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/8694380-0d3b09e6c73f8892.png)
+
+线程调用ObjectMonitor方法，获取Monitor的流程：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014702.jpg)
+
+线程调用ObjectMonitor方法，释放Monitor的流程：
+
+![pic](https://github.com/solo941/notes/blob/master/并发/pics/微信图片_20190823014708.jpg)
+
+下面分析一下引入管程的原因：
+
+```
+管程 (英语：Monitors，也称为监视器) 是一种程序结构，结构内的多个子程序（对象或模块）形成的多个工作线程互斥访问共享资源。
+引入管程的原因
+信号量机制的缺点：进程自备同步操作，P(S)和V(S)操作大量分散在各个进程中，不易管理，易发生死锁。
+管程特点：管程封装了同步操作，对进程隐蔽了同步细节，简化了同步功能的调用界面。
+```
+
+
+
 ## Java的对象模型
 
 ### oop-klass model
