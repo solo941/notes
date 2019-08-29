@@ -204,7 +204,7 @@ a 追加文本到指定行后
 sed '2a 106,dandan,CSO\n107,bingbing,CCO' person.txt
 ```
 
-我们对sampler.log我文件进行操作
+我们对sampler.log的文件进行操作
 
 ```
 sed -e 's/input/output/' sampler.log 

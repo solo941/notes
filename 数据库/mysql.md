@@ -273,3 +273,4 @@ MySQL默认的事务性存储引擎，默认级别是可重复读。在可重复
 读写分离常用代理方式来实现，代理服务器接收应用层传来的读写请求，然后决定转发到哪个服务器。
 
 ![pic](https://github.com/solo941/notes/blob/master/数据库/pics/master-slave-proxy.png)
+
