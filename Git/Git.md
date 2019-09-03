@@ -1,9 +1,13 @@
 ## 仓库
 
+![pic](https://github.com/solo941/notes/blob/master/Git/pics/微信图片_20190903180416.jpg)
+
 1. **Remote:** 远程主仓库；
 2. **Repository/History：** 本地仓库；
 3. **Stage/Index：** Git追踪树,暂存区；
 4. **workspace：** 本地工作区（即你编辑器的代码）
+
+![pic](https://github.com/solo941/notes/blob/master/Git/pics/微信图片_20190903180447.jpg)
 
 ## 代码提交流程
 
@@ -125,6 +129,38 @@ git merge upstream/master
 git push 
 ```
 
+### 解决 git pull 时的冲突
+
+#### **未commit先pull，视本地修改量选择revert或stash**
+
+如果本地修改量小，例如只修改了一行，可以按照以下流程
+
+```
+-> revert(把自己的代码取消) -> 重新pull -> 在最新代码上修改 -> [pull确认最新] -> commit&push
+```
+
+ 本地修改量大，冲突较多
+
+```
+-> stash save(把自己的代码隐藏存起来) -> 重新pull -> stash pop(把存起来的隐藏的代码取回来 ) -> 代码文件会显示冲突 -> 右键选择resolve conflict -> 打开文件解决冲突 ->commit&push
+```
+
+#### **已commit未push，视本地修改量选择reset或直接merge**
+
+如果本地修改量小，例如只修改了一行，可以按照以下流程  
+
+```
+-> reset(回退到未修改之前，选hard模式，把自己的更改取消) -> 重新pull -> 在最新代码上修改 -> [pull确认最新] -> commit&push
+```
+
+#### **修改量大，直接merge，再提交（目前常用）**
+
+```
+-> commit后pull显示冲突 -> 手动merge解决冲突 -> 重新commit -> push
+```
+
+
+
 ## 参考资料
 
 [珍藏多年的 Git 问题和操作清单](https://mp.weixin.qq.com/s/_jkzxQzQCppADch3CcZM_A)
@@ -132,4 +168,6 @@ git push
 [**git rebase 还是 merge的使用场景最通俗的解释**](https://www.jianshu.com/p/4079284dd970)
 
 [Git](https://github.com/CyC2018/CS-Notes/blob/master/notes/Git.md)
+
+[git pull时冲突的几种解决方式](https://www.cnblogs.com/zjfjava/p/10280247.html)
 
