@@ -1,10 +1,10 @@
 ## 定义
 
-DML：数据库定义语言
+DML：用于操作数据库对象中包含的数据，也就是说操作的单位是记录。
 
 SELECT、UPDATE、INSERT、DELETE，主要用来对数据库的数据进行一些操作。
 
-DDL：数据库定义语言
+DDL：用于操作对象和对象的属性，这种对象包括数据库本身，以及数据库对象，像：表、视图等等。
 
 就是我们在创建表的时候用到的一些sql，比如说：CREATE、ALTER、DROP等。
 
@@ -75,4 +75,127 @@ alter table tb_txt_new drop column col;
 4）、持久性（Durability）：保证事务对数据库的修改是持久有效的，即使发生系统故障，也不应该丢失。
 
 ### CRUD
+
+```
+INSERT INTO mytable(col1, col2)VALUES(val1, val2);
+SELECT DISTINCT col1, col2 FROM mytable;
+UPDATE mytable SET col = val WHERE id = 1;
+DELETE FROM mytable WHERE id = 1;
+```
+
+### 通配符查询
+
+```
+%
+替代一个或多个字符
+_
+仅替代一个字符
+[charlist]
+字符列中的任何单一字符
+[^charlist]
+或者
+[!charlist]
+不在字符列中的任何单一字符
+```
+
+| Id   | LastName | FirstName | Address        | City     |
+| :--- | :------- | :-------- | :------------- | :------- |
+| 1    | Adams    | John      | Oxford Street  | London   |
+| 2    | Bush     | George    | Fifth Avenue   | New York |
+| 3    | Carter   | Thomas    | Changan Street | Beijing  |
+
+从上面的 "Persons" 表中选取居住在以 "Ne" 开始的城市里的人:
+
+SELECT * FROM Persons WHERE City LIKE 'Ne%'
+
+从 "Persons" 表中选取居住在包含 "lond" 的城市里的人：
+
+SELECT * FROM Persons WHERE City LIKE '%lond%'
+
+上面的 "Persons" 表中选取名字的第一个字符之后是 "eorge" 的人：
+
+SELECT * FROM Persons WHERE FirstName LIKE '_eorge'
+
+从上面的 "Persons" 表中选取居住的城市以 "A" 或 "L" 或 "N" 开头的人：
+
+SELECT * FROM Persons WHERE City LIKE '[ALN]%'
+
+### 分组
+
+分组规定：
+
+- GROUP BY 子句出现在 WHERE 子句之后，ORDER BY 子句之前；
+- 除了汇总字段外，SELECT 语句中的每一字段都必须在 GROUP BY 子句中给出；
+- NULL 的行会单独分为一组；
+- 大多数 SQL 实现不支持 GROUP BY 列具有可变长度的数据类型。
+
+GROUP BY 自动按分组字段进行排序，ORDER BY 也可以按汇总字段来进行排序。
+
+```mysql
+SELECT col, COUNT(*) AS num FROM mytable WHERE col > 2 GROUP BY col HAVING num >= 2 ORDER BY num;
+```
+
+### 子查询
+
+数据去重
+
+```sql
+select * from table where id in (select max(id) from table group by [去除重复的字段名列表,…])
+```
+
+### 连接
+
+连接用于连接多个表，使用 JOIN 关键字，并且条件语句使用 ON 而不是 WHERE。常见的有内连接、左联接、右连接、全连接、交叉连接 。
+
+#### 内连接
+
+```sql
+SELECT s.name, c.className FROM student s INNER JOIN class c on s.`name` IN (SELECT r.studetId FROM ref r WHERE r.classNum = c.classNum);
+```
+
+#### 外连接
+
+```sql
+ #LEFT JOIN 
+ SELECT s.name, c.className FROM student s LEFT JOIN class c on s.`name` IN (SELECT r.studetId FROM ref r WHERE r.classNum = c.classNum);
+  #RIGHT JOIN 
+ SELECT s.name, c.className FROM student s RIGHT JOIN class c on s.`name` IN (SELECT r.studetId FROM ref r WHERE r.classNum = c.classNum);
+  #FULL JOIN 
+ SELECT s.name, c.className FROM student s FULL JOIN class c on s.`name` IN (SELECT r.studetId FROM ref r WHERE r.classNum = c.classNum);
+```
+
+#### **交叉连接**
+
+```
+SELECT s.name, c.className FROM student s cross JOIN class c on s.`name` IN (SELECT r.studetId FROM ref r WHERE r.classNum = c.classNum);
+```
+
+### 组合查询
+
+```sql
+SELECT classNum FROM class WHERE class.className = '操作系统' UNION
+SELECT classNum FROM ref WHERE ref.id =2;
+```
+
+使用  **UNION**  来组合两个查询，如果第一个查询返回 M 行，第二个查询返回 N 行，那么组合查询的结果一般为 M+N 行。
+
+## 视图
+
+视图是虚拟的表，本身不包含数据，也就不能对其进行索引操作。
+
+对视图的操作和对普通表的操作一样。
+
+视图具有如下好处：
+
+- 简化复杂的 SQL 操作，比如复杂的连接；
+- 只使用实际表的一部分数据；
+- 通过只给用户访问视图的权限，保证数据的安全性；
+- 更改数据格式和表示。
+
+```sql
+CREATE VIEW myview2 AS
+SELECT Concat(classNum, studetId) AS concat_col, classNum*id AS compute_col
+FROM ref
+WHERE studetId like '_ha%';
+```
 
