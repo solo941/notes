@@ -15,9 +15,15 @@
 
 ### 使用场景：
 
-#### git add . 之后希望丢弃修改：
+#### 想要丢弃工作区的修改
 
 git checkout -- .
+
+工作区会回到最近一次`git commit`或`git add`时的状态
+
+#### git add . 之后希望丢弃暂存区修改：
+
+git reset HEAD \<file>
 
 #### commit 信息修改
 
