@@ -274,3 +274,95 @@ MySQL默认的事务性存储引擎，默认级别是可重复读。在可重复
 
 ![pic](https://github.com/solo941/notes/blob/master/数据库/pics/master-slave-proxy.png)
 
+## 问题分析：**mysql查询时，offset过大影响性能的原因与优化方法**
+
+#### 准备工作：创建表
+
+```mysql
+CREATE TABLE `member` (
+ `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ `name` varchar(10) NOT NULL COMMENT '姓名',
+ `gender` tinyint(3) unsigned NOT NULL COMMENT '性别',
+ PRIMARY KEY (`id`),
+ KEY `gender` (`gender`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+```
+
+#### 插入数据
+
+```php
+<?php
+$pdo = new PDO("mysql:host=localhost;dbname=user","root",'');
+
+for($i=0; $i<1000000; $i++){
+    $name = substr(md5(time().mt_rand(000,999)),0,10);
+    $gender = mt_rand(1,2);
+    $sqlstr = "insert into member(name,gender) values('".$name."','".$gender."')";
+    $stmt = $pdo->prepare($sqlstr);
+    $stmt->execute();
+}
+?>
+```
+
+offset较小时,查询速度快，但增加时，会出现效率问题：
+
+```mysql
+mysql> select * from member where gender=1 limit 300000,1;
++--------+------------+--------+
+| id     | name       | gender |
++--------+------------+--------+
+| 599465 | f48375bdb8 |      1 |
++--------+------------+--------+
+1 row in set (0.38 sec)
+```
+
+#### 原因分析
+
+InnoDB非主键是聚簇索引，通过gender先确定所有的主键，再通过主键索引查询所有的行记录，最后找到300000记录，过程如下：
+
+- 通过二级索引查到主键值（找出所有gender=1的id)。
+- 再根据查到的主键值通过主键索引找到相应的数据块（根据id找出对应的数据块内容）。
+- 根据offset的值，查询300001次主键索引的数据，最后将之前的300000条丢弃，取出最后1条。
+
+为了验证我们的猜想，尝试只搜索主键，这样就能不走主键约束：
+
+```java
+mysql> select id from member where gender=1 limit 300000,1;
++--------+
+| id     |
++--------+
+| 599465 |
++--------+
+1 row in set (0.08 sec)
+```
+
+此可以证实，mysql查询时，offset过大影响性能的原因是多次通过主键索引访问数据块的I/O操作。
+
+#### 解决方案
+
+**我们先查出偏移后的主键，再根据主键索引查询数据块的所有内容即可优化。**
+
+```
+mysql> select a.* from member as a inner join (select id from member where gender=1 limit 300000,1) as b on a.id=b.id;
++--------+------------+--------+
+| id     | name       | gender |
++--------+------------+--------+
+| 599465 | f48375bdb8 |      1 |
++--------+------------+--------+
+1 row in set (0.08 sec)
+```
+
+## where和having的区别
+
+having子句与where子句一样，都是用于条件判断的，但二者存在很大的区别：
+
+#### 区别一
+
+使用where需要从磁盘中逐条读取数据，进行判断，满足条件的放入内存；
+
+使用having所有记录先读入内存，然后在内存中逐条判断并删除。
+
+#### 区别二
+
+having子句可以使用字段别名，where不能用；having能够使用统计函数，where不能用
