@@ -114,6 +114,37 @@ select FROM_UNIXTIME (copyright_apply_time/1000,'%Y-%m-%d') point,count(1) nums 
 - 增加中间表，把需要联合查询的数据插入到中间表中，提高效率。
 - 将字段很多的表分解成多个表
 
+### 实例分析：禁止超过三张表join
+
+1千万选课记录(一个学生选修2门课),500万学生，100万老师，1000门课。**查询选修“tname553”老师所授课程的学生中，成绩最高的学生姓名及其成绩**。
+
+表的关系：
+
+方案一：多表join
+
+```mysql
+select Student.Sname,course.cname,score 
+    from Student,SC,Course ,Teacher 
+    where Student.s_id=SC.s_id and SC.c_id=Course.c_id  and sc.t_id=teacher.t_id 
+    and Teacher.Tname='tname553' 
+    and SC.score=(select max(score)from SC where sc.t_id=teacher.t_Id);
+```
+
+方案二：分解这个语句成3个简单的sql
+
+```mysql
+ //结果最高分590分
+ select max(score)  from SC ,Teacher where sc.t_id=teacher.t_Id and Teacher.Tname='tname553';
+ //最高分学生id返回20769800,48525000,26280200,选修课程可能不同
+   select sc.t_id,sc.s_id,score   from SC ,Teacher where sc.t_id=teacher.t_Id and score=590 and Teacher.Tname='tname553';
+   //学生姓名，课程名称和分数
+   select Student.Sname,course.cname,score from Student,SC ,course where Student.s_id=SC.s_id and  sc.s_id in (20769800,48525000,26280200) and course.c_id = sc.c_id and score = 590;
+```
+
+第一种建立索引需要花费1s，第二种加起来花费0.4s。此外，还有一点原因：
+
+达到一定数据量之后 一但需要分库 不管是垂直分库还是水平分库 多表的连接查询大部分要拆成单表查询，因此，尽量避免多表查询。
+
 ## 参考资料
 
 [**常见Mysql的慢查询优化方式**](https://blog.csdn.net/qq_35571554/article/details/82800463)
@@ -122,3 +153,4 @@ select FROM_UNIXTIME (copyright_apply_time/1000,'%Y-%m-%d') point,count(1) nums 
 
 [数据库索引原理](https://github.com/solo941/notes/blob/master/数据库/mysql.md)
 
+[**我想说：mysql的join真的很弱**](http://blog.itpub.net/30393770/viewspace-2650450/)
