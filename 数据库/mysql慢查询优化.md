@@ -32,6 +32,8 @@ set global log_queries_not_using_indexes=1;
 
 ## explain进行慢查询分析
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/QQ截图20190906160643.png)
+
 **id：**执行编号，标识select所属的行。如果在语句中没子查询或关联查询，只有唯一的select，每行都将显示1。否则，内层的select语句一般会顺序编号，对应于其在原始语句中的位置
 
 **select_type：**显示本行是简单或复杂select。如果查询有任何复杂的子查询，则最外层标记为PRIMARY（DERIVED、UNION、UNION RESUlT）
@@ -111,3 +113,12 @@ select FROM_UNIXTIME (copyright_apply_time/1000,'%Y-%m-%d') point,count(1) nums 
 - 分解关联查询，进行单表查询在应用程序中进行关联
 - 增加中间表，把需要联合查询的数据插入到中间表中，提高效率。
 - 将字段很多的表分解成多个表
+
+## 参考资料
+
+[**常见Mysql的慢查询优化方式**](https://blog.csdn.net/qq_35571554/article/details/82800463)
+
+[**很高兴！终于在生产上踩到了慢查询优化的坑**](https://blog.csdn.net/yanpenglei/article/details/100516055)
+
+[数据库索引原理](https://github.com/solo941/notes/blob/master/数据库/mysql.md)
+
