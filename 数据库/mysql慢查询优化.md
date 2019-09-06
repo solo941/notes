@@ -120,6 +120,8 @@ select FROM_UNIXTIME (copyright_apply_time/1000,'%Y-%m-%d') point,count(1) nums 
 
 表的关系：
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/c64d2a9fe1e701b4.png)
+
 方案一：多表join
 
 ```mysql
@@ -133,7 +135,7 @@ select Student.Sname,course.cname,score
 方案二：分解这个语句成3个简单的sql
 
 ```mysql
- //结果最高分590分
+ //结果最高分667分
  select max(score)  from SC ,Teacher where sc.t_id=teacher.t_Id and Teacher.Tname='tname553';
  //最高分学生id返回20769800,48525000,26280200,选修课程可能不同
    select sc.t_id,sc.s_id,score   from SC ,Teacher where sc.t_id=teacher.t_Id and score=590 and Teacher.Tname='tname553';
@@ -141,7 +143,13 @@ select Student.Sname,course.cname,score
    select Student.Sname,course.cname,score from Student,SC ,course where Student.s_id=SC.s_id and  sc.s_id in (20769800,48525000,26280200) and course.c_id = sc.c_id and score = 590;
 ```
 
-第一种建立索引需要花费1s，第二种加起来花费0.4s。此外，还有一点原因：
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/QQ截图20190907040304.png)
+
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/QQ截图20190907040329.png)
+
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/QQ截图20190907040422.png)
+
+第一种建立索引需要花费大于10分钟，第二种花费时间如上图。此外，还有一点原因：
 
 达到一定数据量之后 一但需要分库 不管是垂直分库还是水平分库 多表的连接查询大部分要拆成单表查询，因此，尽量避免多表查询。
 
