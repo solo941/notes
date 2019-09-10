@@ -97,11 +97,11 @@ INSERT INTO tb_score1(userid,cn_score,math_score,en_score,po_score) VALUES ('003
 
 表内容如下
 
-
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/微信截图_20190911003437.png)
 
 按照学生id和科目统计成绩，这里要使用union将统计结果拼到一起。
 
-
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/微信截图_20190911004053.png)
 
 ```mysql
 SELECT userid,'语文' AS course,cn_score AS score FROM tb_score1
@@ -122,3 +122,25 @@ UNION与UNION ALL的区别（摘）：
 2.对排序的处理：UNION会排序，UNION ALL只是简单地将两个结果集合并；
 
 3.效率方面的区别：因为UNION 会做去重和排序处理，因此效率比UNION ALL慢很多；
+
+## 行列转换应用
+
+表字段经常要增加的业务，但是这些字段并不是所有的数据都会用到，字段存储在一个单独的表中，key存储字段，value存储字段值。
+
+表结构
+
+![pic](http://img.blog.itpub.net/blog/2019/06/21/614f3521771c51a6.png?x-oss-process=style/bb)
+
+表内容
+
+![pic](http://img.blog.itpub.net/blog/2019/06/21/49d481be55d9eca5.png?x-oss-process=style/bb)
+
+每次需要读表的时候，需要进行行转列
+
+![img](http://img.blog.itpub.net/blog/2019/06/21/76b30cd352486afa.png?x-oss-process=style/bb)
+
+## 参考资料
+
+![pic](http://blog.itpub.net/30393770/viewspace-2648391/)
+
+![pic](https://blog.csdn.net/lilong329329/article/details/81664451)
