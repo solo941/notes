@@ -23,7 +23,7 @@ oracle中有pivot和unpivot可以应对行列转换的问题，MySQL如何应对
 
 为了方便演示，我们构造一个成绩表
 
-```
+```sql
 DROP TABLE IF EXISTS tb_score;
  
 CREATE TABLE tb_score(
@@ -46,10 +46,14 @@ INSERT INTO tb_score(userid,subject,score) VALUES ('003','政治',82);
 
 ```
 
+表的结果如下
 
+![pic](https://github.com/solo941/notes/blob/master/数据库/pics/微信截图_20190910235850.png)
 
-```
-select userid,
+我们想要按照学生id统计各科成绩，这里要注意，学生id并没有唯一性约束，所以要使用distinct或者group by userid。
+
+```sql
+select distinct userid,
 (select score from tb_score t2 where subject = '语文' and t1.userid = t2.userid) 语文,
 (select score from tb_score t2 where subject = '数学' and t1.userid = t2.userid) 数学,
 (select score from tb_score t2 where subject = '英语' and t1.userid = t2.userid) 英语,
@@ -57,4 +61,3 @@ select userid,
 from tb_score t1;
 ```
 
-distinct
