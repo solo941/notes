@@ -55,6 +55,8 @@ dump之后通过mat检查是否存在大量由于反射生成的代理类；
 java.lang.OutOfMemoryError : unable to create new native Thread
 ```
 
+![pic](https://github.com/solo941/notes/blob/master/排查/pics/微信截图_20190911165222.png)
+
 原因分析：
 
 出现这种异常，基本上都是创建的了大量的线程导致的。
@@ -65,7 +67,15 @@ visualvm查看线程栈大小，通过`-Xss`降低每个线程栈的大小。
 
 ## 死锁分析
 
-可以使用java visualvm进行死锁分析
+可以使用java visualvm进行死锁分析，也可以使用jstack打印线程信息
+
+```
+jstack -l <pid>
+```
+
+![pic](https://github.com/solo941/notes/blob/master/排查/pics/微信截图_20190911154515.png)
+
+![pic](https://github.com/solo941/notes/blob/master/排查/pics/QQ截图20190911155628.png)
 
 ## StackOverFlow
 
@@ -74,4 +84,6 @@ visualvm查看线程栈大小，通过`-Xss`降低每个线程栈的大小。
 解决方法：
 
 java visualvm可以dump线程，定位递归语句的错误。
+
+![pic](https://github.com/solo941/notes/blob/master/排查/pics/微信截图_20190911161741.png)
 
