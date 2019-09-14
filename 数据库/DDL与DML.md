@@ -59,6 +59,8 @@ alter table tb_txt_new modify(tid varchar2(20));
 alter table tb_txt_new add col varchar2(30); 
 --删除列 
 alter table tb_txt_new drop column col;
+--修改字段名称及类型
+alter table tb_txt change old_field_name new_field_name field_type;
 ```
 
 ## DML
