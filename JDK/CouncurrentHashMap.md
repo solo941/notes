@@ -391,7 +391,11 @@ private final void tryPresize(int size) {
 
 ### transfer
 
+![pic](https://github.com/solo941/notes/blob/master/JDK/pics/2184951-8566ed56aa3a1a9c.png)
+
 在上图中，第14个槽位插入新节点之后，链表元素个数已经达到了8，且数组长度为16，优先通过扩容来缓解链表过长的问题，可以快速把链表中的元素区分成两类，A类是hash值的第X位为0，B类是hash值的第X位为1，并通过`lastRun`记录最后需要处理的节点，A类和B类节点可以分散到新数组的槽位14和30中，在原数组的槽位14中，蓝色节点第X为0，红色节点第X为1，把链表拉平显示如下：
+
+![pic](https://github.com/solo941/notes/blob/master/JDK/pics/2184951-5e60c316353e8a8f.png)
 
 1、通过遍历链表，记录`runBit`和`lastRun`，分别为1和节点6，所以设置`hn`为节点6，`ln`为null；
 2、重新遍历链表，以`lastRun`节点为终止条件，根据第X位的值分别构造ln链表和hn链表.
