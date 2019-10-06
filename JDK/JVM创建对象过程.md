@@ -170,7 +170,9 @@ otherMethod(1)
 
 初始化顺序：
 
+![pic](https://github.com/solo941/notes/blob/master/JDK/pics/20180318140312294.png)
 
+![pic](https://github.com/solo941/notes/blob/master/JDK/pics/20180318140317123.png)
 
 ## 参考文章
 
@@ -181,4 +183,6 @@ otherMethod(1)
 [深入探讨 Java 类加载器](https://www.ibm.com/developerworks/cn/java/j-lo-classloader/index.html#code6)
 
 [**JDK8中JVM堆内存划分**](https://yq.aliyun.com/articles/446120)
+
+[**一道有意思的“初始化”面试题**](https://blog.csdn.net/v123411739/article/details/79600228)
 
